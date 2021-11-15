@@ -55,7 +55,7 @@ def choose_subject():
     return subject
 
 def search_record(name):
-    if name not in [obj.name for obj in stds]:
+    if name not in [record.name for record in stds]:
         return True
 
 def display_record(stds):
@@ -63,8 +63,9 @@ def display_record(stds):
             
             print("No student in the record\n")
     else:
-        for i in stds:
-            print("=> ",i)
+        for record in stds:
+            print("=> ",record)
+
 def add_new_student():
     name = input("Enter name: ")
     age = int(input("Enter age of student: "))
@@ -85,10 +86,10 @@ def search_student():
         print("Record not found")
 
     else:
-        for i in stds:
-            if i.name == name:
+        for record in stds:
+            if record.name == name:
                 print(f"Record of student {name} found.")
-                print(i)
+                print(record)
         
 
 def update_student():
@@ -96,8 +97,8 @@ def update_student():
     if search_record(name):
         print("Record not found")
     else:
-        for i in stds:
-            if i.name == name:
+        for record in stds:
+            if record.name == name:
                 print("""
                     Enter 1: To update age
                     Enter 2: To update roll no 
@@ -106,26 +107,26 @@ def update_student():
                 option = int(input("please enter number: "))
                 if(option ==1):
                     age = int(input("Enter age: "))
-                    i.age = age
+                    record.age = age
                     print("After updated: ")
-                    print(i)
+                    print(record)
                 elif(option == 2):
                     roll_no = int(input("Enter the roll no: "))
-                    i.roll_no = roll_no
+                    record.roll_no = roll_no
                     print("After updated: ")
-                    print(i)
+                    print(record)
 
                 elif(option == 3):
                     grade = int(input("Enter the grade: "))
-                    i.grade = grade
+                    record.grade = grade
                     print("After updated: ")
-                    print(i)
+                    print(record)
 
                 elif(option == 4):
                     address = input("Enter address of student: ")
-                    i.address= address
+                    record.address= address
                     print("After updated: ")
-                    print(i)
+                    print(record)
 
                 else:
                     print("'Invalid option selected'")
@@ -138,9 +139,9 @@ def delete_student():
         print("Record not found")
     else:
         j = 0
-        for i in stds:
+        for record in stds:
                 
-            if i.name == name:
+            if record.name == name:
                 del stds[j]
             j +=1
     
