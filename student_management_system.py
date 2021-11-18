@@ -3,162 +3,177 @@ import platform
 global stds
 stds = []
 from teacher import Supervisor
-class Student():
-    def __init__(self,name,age,roll_no,grade,address,subject,supervisior):
-        self.name = name
-        self.age = age
-        self.roll_no = roll_no
-        self.grade = grade
-        self.address = address
-        self.subject = subject
-        self.supervisior = supervisior
-        
-    def __str__(self):
-        return f"""
-        Name:{self.name.capitalize()}
-        Age:{self.age} 
-        Roll no:{self.roll_no}
-        Grade: {self.grade}
-        Address: {self.address}
-        Subject: {self.subject}
-        Supervisior: {self.supervisior.name}"""
+from student import Student
 
-    def __del__(self):
-        print (f"deleted {self.name} record.")
+def assign_faculty(cur,conn):
+    name1 = input("Enter the faculty name: ")
+    cur.execute("SELECT id from faculty where name=%s ",(name1,))
+    id = cur.fetchone()
+    if id:
+        return id[0]
+    else:
+        cur.execute("INSERT INTO faculty(name) VALUES(%s)",(name1,))
+        conn.commit()
+        print("Faculty added.")
+        cur.execute("SELECT id from faculty WHERE name = %s",(name1,))
+        return cur.fetchone()[0]
 
-def assign_supervisior():
+
+def assign_supervisior(cur,conn):
     name = input("Enter the name of supervisor: ")
     address = input("Enter the address of supervisior: ")
-    teacher_record = Supervisor(name,address)
-    return teacher_record
+    cur.execute("SELECT id FROM supervisior WHERE name=%s AND address=%s ",(name,address))
+    id = cur.fetchone()
+    if (id):
 
-
-def choose_subject():
-    print("""
-    Choose one of the option to choose subject
-    Enter 1: Science
-    Enter 2: Management
-    Enter 3: Arts
-    Enter 4: Humanities """)
-    option = int(input("Enter the option: "))
-    if option == 1:
-        subject = "Science"
-    elif option == 2:
-        subject = "Management"
-    elif option == 3:
-        subject = "Arts"
-    elif option == 4:
-        subject = "Humanities"
+        return id[0]
+        
+        
     else:
-        print("Invalid option")
-        quit()
-    return subject
+        cur.execute("INSERT INTO supervisior (name,address) VALUES(%s, %s)",(name,address))
+        conn.commit()
+        print("Supervisior information added")
+        cur.execute("SELECT id from supervisior WHERE name = %s",(name,))
+        record = cur.fetchone()[0]
+        return record
+    
 
-def search_record(name):
-    if name not in [record.name for record in stds]:
+
+def choose_subject(std_id,fac_id,cur,conn):
+    while(True):
+        subject_name = input("Enter the name of subject: ")
+        cur.execute("SELECT id from subject WHERE name=%s AND faculty_id=%s ",(subject_name,fac_id))
+        id = cur.fetchone()
+        if id:
+            sub_id = id[0]
+        else:
+
+            cur.execute("INSERT INTO subject (faculty_id,name) VALUES(%s,%s)",(fac_id,subject_name))
+            conn.commit()
+            cur.execute("SELECT id from subject WHERE name = %s",(subject_name,))
+            sub_id = cur.fetchone()[0]
+        cur.execute("INSERT INTO student_subject(student_id,subject_id) VALUES(%s,%s)",(std_id,sub_id))
+        conn.commit()
+        print("Subject saved in database.\n")
+        print("""
+                Enter 1: to exit
+                Enter 2: To enter next subject""")
+        option = int(input("Enter the option: "))
+        if option == 1:
+            break
+        elif option ==2:
+            continue
+        else:
+            print("Invalid opton")
+            quit()
+        
+    
+    
+
+def search_record(name,cur):
+    cur.execute("SELECT * from student WHERE name=%s",(name,))
+    record = cur.fetchone()
+    if not record:
         return True
 
-def display_record(stds):
-    if len(stds)==0:
+def display_record(records):
+    if not records:
             
             print("No student in the record\n")
     else:
-        for record in stds:
-            print("=> ",record)
+        for record in records:
+            print(f"""=>
+             ID :{record[0]}
+             Name: {record[3]}
+             Age: {record[4]}
+             Roll no: {record[5]}
+             Grade: {record[6]}
+             Address: {record[7]} """)
 
-def add_new_student():
+def add_new_student(cur,conn):
     name = input("Enter name: ")
     age = int(input("Enter age of student: "))
     roll_no = input("Enter roll no of student: ")
     grade = input("Enter grade of student: ")
     address = input("Enter address of student: ")
-    subject = choose_subject()
-    supervisior = assign_supervisior()
+    
+    sup_id = assign_supervisior(cur,conn)
+    fac_id = assign_faculty(cur,conn)
 
-    student_record = Student(name,age,roll_no,grade,address,subject,supervisior)
-    print("Added information:")
-    print(student_record,"\n")
-    stds.append(student_record)
+    
+    
+    cur.execute("INSERT INTO student(supervisior_id,faculty_id,name,age,rollno,grade,address) \
+        VALUES (%s,%s,%s,%s,%s,%s,%s)",(sup_id,fac_id,name,age,roll_no,grade,address));
+    conn.commit()
+    print("Student information added")
+    cur.execute("SELECT id FROM student WHERE name=%s",(name,))
+    std_id = cur.fetchone()[0]
+    choose_subject(std_id,fac_id,cur,conn)
+    
 
-def search_student():
+def search_student(cur):
     name = input("Enter name of student: ")
-    if search_record(name):
+    if search_record(name,cur):
         print("Record not found")
 
     else:
-        for record in stds:
-            if record.name == name:
-                print(f"Record of student {name} found.")
-                print(record)
+        cur.execute("SELECT * from student WHERE name=%s",(name,))
+        record = cur.fetchone()
+        print(f"""
+                Name: {record[3]}
+                Age:    {record[4]}
+                Roll n0: {record[5]}
+                Grade:  {record[6]}
+                Address: {record[7]}""")
         
 
-def update_student():
+def update_student(cur,conn):
     name = input("Enter name of student: ")
-    if search_record(name):
+    if search_record(name,cur):
         print("Record not found")
     else:
-        for record in stds:
-            if record.name == name:
-                print("""
+        
+    
+        print("""
                     Enter 1: To update age
                     Enter 2: To update roll no 
                     Enter 3: To update grade
                     Enter 4: To update address""")
-                option = int(input("please enter number: "))
-                if(option ==1):
+        option = int(input("please enter number: "))
+        if(option ==1):
                     age = int(input("Enter age: "))
-                    record.age = age
-                    print("After updated: ")
-                    print(record)
-                elif(option == 2):
+                    cur.execute("UPDATE student SET age=%s WHERE name=%s",(age,name))
+                    conn.commit()
+                    print("Age updated ")
+                    
+        elif(option == 2):
                     roll_no = int(input("Enter the roll no: "))
-                    record.roll_no = roll_no
-                    print("After updated: ")
-                    print(record)
+                    cur.execute("UPDATE student SET rollno=%s WHERE name=%s",(roll_no,name))
+                    conn.commit()
+                    print("Roll no updated ")
 
-                elif(option == 3):
+        elif(option == 3):
                     grade = int(input("Enter the grade: "))
-                    record.grade = grade
-                    print("After updated: ")
-                    print(record)
+                    cur.execute("UPDATE student SET grade=%s WHERE name=%s",(grade,name))
+                    conn.commit()
+                    print("Grade updated ")
 
-                elif(option == 4):
+        elif(option == 4):
                     address = input("Enter address of student: ")
-                    record.address= address
-                    print("After updated: ")
-                    print(record)
+                    cur.execute("UPDATE student SET address=%s WHERE name=%s",(address,name))
+                    conn.commit()
+                    print("Address updated ")
 
-                else:
+        else:
                     print("'Invalid option selected'")
                     quit()
 
 
-def delete_student():
+def delete_student(cur,conn):
     name = input("Enter the name: ")
-    if search_record(name):
+    if search_record(name,cur):
         print("Record not found")
     else:
-        j = 0
-        for record in stds:
-                
-            if record.name == name:
-                del stds[j]
-            j +=1
-    
-
-
-
-
-
-
-
-
-
-
-
-
-      
-
-        
-
-
+        cur.execute("DELETE from student WHERE name = %s",(name,))
+        conn.commit()
+        print("Student record deleted")

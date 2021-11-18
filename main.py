@@ -1,7 +1,7 @@
 from student_management_system import display_record,add_new_student,search_student,update_student,delete_student,stds
 import platform,os
 from teacher import Supervisor
-def main():
+def main(cur,conn):
     
     print("""
     ## Welcome to Student Management System ##
@@ -21,45 +21,45 @@ def main():
 
     if(user_input == 1):
         print("List of student \n")
-        display_record(stds)
+        cur.execute("SELECT * from student")
+        records = cur.fetchall()
+        display_record(records)
 
     elif(user_input == 2):
         print("Add new student")
-        add_new_student()
+        add_new_student(cur,conn)
         
     elif(user_input == 3):
         print("search student")
-        search_student()
+        search_student(cur)
         
     
     elif(user_input == 4):
 
         print("Update student")
-        update_student()
+        update_student(cur,conn)
         
     
     elif(user_input == 5):
         print("Delete student")
-        delete_student()
+        delete_student(cur,conn)
         
 
     else:
         print("Invalid option selected")
         quit()
 
-def runagain():
+def runagain(cur,conn):
     runagain_i = input("Want to run again Y/n ")
     if runagain_i.lower() == 'y':
         if platform.system() == "Windows":
             print(os.system('cls')) 
         else:
             print(os.system('clear')) 
-        main()
-        runagain()
+        main(cur,conn)
+        runagain(cur,conn)
 
     else:
         print("Bye")
         quit()
 
-main()
-runagain()
