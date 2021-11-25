@@ -1,9 +1,3 @@
-import os
-import platform
-global stds
-stds = []
-from teacher import Supervisor
-from student import Student
 
 def assign_faculty(cur,conn):
     name1 = input("Enter the faculty name: ")
@@ -27,8 +21,7 @@ def assign_supervisior(cur,conn):
     if (id):
 
         return id[0]
-        
-        
+
     else:
         cur.execute("INSERT INTO supervisior (name,address) VALUES(%s, %s)",(name,address))
         conn.commit()
@@ -67,8 +60,7 @@ def choose_subject(std_id,fac_id,cur,conn):
             print("Invalid opton")
             quit()
         
-    
-    
+
 
 def search_record(name,cur):
     cur.execute("SELECT * from student WHERE name=%s",(name,))
@@ -90,6 +82,7 @@ def display_record(records):
              Grade: {record[6]}
              Address: {record[7]} """)
 
+
 def add_new_student(cur,conn):
     name = input("Enter name: ")
     age = int(input("Enter age of student: "))
@@ -100,8 +93,6 @@ def add_new_student(cur,conn):
     sup_id = assign_supervisior(cur,conn)
     fac_id = assign_faculty(cur,conn)
 
-    
-    
     cur.execute("INSERT INTO student(supervisior_id,faculty_id,name,age,rollno,grade,address) \
         VALUES (%s,%s,%s,%s,%s,%s,%s)",(sup_id,fac_id,name,age,roll_no,grade,address));
     conn.commit()
@@ -177,3 +168,41 @@ def delete_student(cur,conn):
         cur.execute("DELETE from student WHERE name = %s",(name,))
         conn.commit()
         print("Student record deleted")
+
+def create_user(cur, conn):
+    username = input("Enter the username: ")
+    password = input("Enter password: ")
+    conform_password = input("Enter password to conform: ")
+    if password == conform_password:
+ 
+        cur.execute("INSERT INTO users(name,password)\
+            VALUES(%s,%s)",(username,password))
+        conn.commit()
+        print("User information added to database")
+        
+    else:
+        print("Password and conformation password doesn't match")
+        print("Enter the credentials carefully ")
+        create_user(cur,conn)
+
+
+def login_user(cur):
+    username = input("Enter your username: ")
+    password = input("Enter your password: ")
+    cur.execute("SELECT name,password FROM users WHERE name=%s",(username,))
+    user = cur.fetchone()
+    if user and  user[1] == password:
+        return True
+
+    
+        
+
+
+
+
+
+
+
+
+
+

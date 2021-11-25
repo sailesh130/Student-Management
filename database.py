@@ -1,10 +1,14 @@
 import psycopg2
-from main import main,runagain
-host = 'localhost'
-password = "9843"
-port = 5432
-database = 'student'
-user = "postgres"
+from main import main,runagain,check_user
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+host = os.environ.get('database_host')
+password = os.environ.get('database_password')
+port = os.environ.get('database_port')
+database = os.environ.get('database_name')
+user = os.environ.get('database_user')
 
 try:
     conn = psycopg2.connect(
@@ -14,6 +18,13 @@ try:
         password=password,
         port=port)
     cur = conn.cursor()
+
+
+    script = '''CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name varchar(40) NOT NULL UNIQUE,
+        password varchar(524) NOT NULL 
+    );'''
     
     script1 = '''CREATE TABLE IF NOT EXISTS student (
                 id SERIAL PRIMARY KEY,
@@ -26,6 +37,7 @@ try:
                 address varchar(50),
                 CONSTRAINT fk_supervisior FOREIGN KEY (supervisior_id) REFERENCES supervisior(id) ON DELETE CASCADE,
                 CONSTRAINT fk_faculty FOREIGN KEY (faculty_id) REFERENCES faculty(id) ON DELETE CASCADE);'''
+                
            
     script2 = '''CREATE TABLE IF NOT EXISTS supervisior (
         id SERIAL PRIMARY KEY,
@@ -50,7 +62,7 @@ try:
         CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE ,
         CONSTRAINT fk_subject FOREIGN KEY (subject_id) REFERENCES subject(id) ON DELETE CASCADE
         );'''
-    
+    cur.execute(script)
     cur.execute(script2)
     
     cur.execute(script4)
@@ -63,7 +75,7 @@ try:
     
     print("Table sucessfully created")
 
-    main(cur,conn)
+    check_user(cur,conn)
     runagain(cur,conn)
 except Exception as error:
     print(error)
