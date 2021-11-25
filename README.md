@@ -1,2 +1,2 @@
-# Student-Management
-type python database.py in cli to run this system.
+# Student-Management-system
+python main.py to run this system.
