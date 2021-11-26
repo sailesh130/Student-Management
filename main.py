@@ -1,5 +1,5 @@
-from student_management_system import display_record,add_new_student,search_student,update_student,delete_student,create_user,login_user
-
+from student_management_system import display_record,add_new_student,search_student,update_student,delete_student,create_user,login_user,summary
+from tabulate import tabulate
 import platform, os
 
 
@@ -47,7 +47,8 @@ def main(cur,conn):
     Enter 3: To search student
     Enter 4: To update student
     Enter 5: To delete student 
-    Enter 6: To logout \n """)
+    Enter 6: To display summary
+    Enter 7: To logout \n """)
 
     try:
         user_input = int(input("Please select an option "))
@@ -81,7 +82,12 @@ def main(cur,conn):
         print("Delete student")
         delete_student(cur,conn)
     
-    elif(user_input == 6):
+    elif(user_input ==6):
+        records = summary(cur)
+        print("Summary of student management system")
+        print(tabulate(records, headers=['Student','Faculty','Subject','Supervisior'], tablefmt='psql'))
+
+    elif(user_input == 7):
         check_user(cur,conn)
 
     else:

@@ -1,3 +1,7 @@
+import hashlib
+import os
+import getpass
+from tabulate import tabulate
 
 def assign_faculty(cur,conn):
     name1 = input("Enter the faculty name: ")
@@ -73,14 +77,8 @@ def display_record(records):
             
             print("No student in the record\n")
     else:
-        for record in records:
-            print(f"""=>
-             ID :{record[0]}
-             Name: {record[3]}
-             Age: {record[4]}
-             Roll no: {record[5]}
-             Grade: {record[6]}
-             Address: {record[7]} """)
+        print("Stydent information")
+        print(tabulate(records, headers=["S_ID","F_ID",'ID','Name','Age','Roll no','Grade','Address'], tablefmt='psql'))
 
 
 def add_new_student(cur,conn):
@@ -170,13 +168,14 @@ def delete_student(cur,conn):
         print("Student record deleted")
 
 def create_user(cur, conn):
-    username = input("Enter the username: ")
-    password = input("Enter password: ")
-    conform_password = input("Enter password to conform: ")
+    username = input("Enter your username: ")
+    password = getpass.getpass(prompt='Enter your password')
+    conform_password = getpass.getpass(prompt='Conform your password')
     if password == conform_password:
- 
-        cur.execute("INSERT INTO users(name,password)\
-            VALUES(%s,%s)",(username,password))
+        salt = os.urandom(32)
+        key =  hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        cur.execute("INSERT INTO users(name,password,salt)\
+            VALUES(%s,%s,%s)",(username,key,salt))
         conn.commit()
         print("User information added to database")
         
@@ -188,11 +187,28 @@ def create_user(cur, conn):
 
 def login_user(cur):
     username = input("Enter your username: ")
-    password = input("Enter your password: ")
-    cur.execute("SELECT name,password FROM users WHERE name=%s",(username,))
+    password = getpass.getpass(prompt='Enter your password')
+    cur.execute("SELECT name,password,salt FROM users WHERE name=%s",(username,))
     user = cur.fetchone()
-    if user and  user[1] == password:
-        return True
+    if user:
+       
+        salt = bytes(user[2])
+        new_key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        if bytes(user[1]) == new_key:
+            return True
+
+def summary(cur):
+    cur.execute('''select student.name,faculty.name, subject.name,supervisior.name from subject,student,student_subject,faculty,supervisior where 
+    student.id = student_subject.student_id and
+    student_subject.subject_id = subject.id and
+    faculty.id = subject.faculty_id and
+    student.supervisior_id = supervisior.id''')
+    records = cur.fetchall()
+    return records
+
+
+
+
 
     
         

@@ -23,7 +23,9 @@ try:
     script = '''CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         name varchar(40) NOT NULL UNIQUE,
-        password varchar(524) NOT NULL 
+        password bytea NOT NULL ,
+        salt bytea NOT NULL
+    
     );'''
     
     script1 = '''CREATE TABLE IF NOT EXISTS student (
